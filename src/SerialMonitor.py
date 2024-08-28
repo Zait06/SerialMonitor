@@ -8,7 +8,19 @@ from SerialConn import SerialConn
 
 
 class SerialMonitor(tk.Tk):
+    """
+    A GUI application to monitor and send data through a serial connection.
+
+    This class extends tk.Tk to create a window with controls for serial communication
+    and a text area to display received messages.
+    """
     def __init__(self):
+        """
+        Initialize the SerialMonitor application.
+
+        This includes setting up the serial connection, creating the main window,
+        and initializing UI components such as comboboxes, buttons, and text areas.
+        """
         super().__init__()
 
         self.__serial_conn = SerialConn()
@@ -27,10 +39,21 @@ class SerialMonitor(tk.Tk):
         self.receive_thread.start()
 
     def __window(self):
+        """
+        Configure the main window of the application.
+
+        Sets the title and geometry of the window.
+        """
         self.title("Serial Monitor")
         self.geometry("800x400")
 
     def __connection_row(self):
+        """
+        Create the connection row UI components.
+
+        This includes labels, comboboxes for selecting the serial port and baud rate,
+        and a connect/disconnect button.
+        """
         frame = tk.Frame(self)
         frame.pack()
 
@@ -61,6 +84,12 @@ class SerialMonitor(tk.Tk):
         self.btn_conn.pack(side="left")
 
     def __message_row(self):
+        """
+        Create the message row UI components.
+
+        This includes labels, comboboxes for selecting initial and end line characters,
+        an entry for the message, and a send button.
+        """
         frame = tk.Frame(self)
         frame.pack()
 
@@ -102,6 +131,11 @@ class SerialMonitor(tk.Tk):
         self.btn_send.state(["disabled"])
 
     def __monitor_area(self):
+        """
+        Create the monitor area UI components.
+
+        This includes a text area to display received messages and a scrollbar.
+        """
         self.text_area = tk.Text(self, wrap="none")
         self.text_area.pack(expand=True, fill="both")
 
@@ -111,6 +145,11 @@ class SerialMonitor(tk.Tk):
         self.text_area.config(yscrollcommand=self.scrollbar.set)
 
     def receive_data(self):
+        """
+        Continuously receive data from the serial connection and display it in the text area.
+
+        This method runs in a separate thread and updates the text area with received data.
+        """
         while not self.stop_event.is_set():
             time.sleep(0.1)
             if not self.__serial_conn.status:
@@ -125,18 +164,38 @@ class SerialMonitor(tk.Tk):
                 print(f"Error receiving data: {e}")
 
     def __on_closing(self):
+        """
+        Handle the window closing event.
+
+        Stops the data receiving thread, closes the serial connection, and destroys the window.
+        """
         self.stop_event.set()
         self.receive_thread.join()
         self.__serial_conn.close_conn()
         self.destroy()
 
     def __on_port_changed(self):
+        """
+        Handle the event when the selected serial port changes.
+
+        Updates the serial connection with the new port.
+        """
         self.__serial_conn.port = self.__port.get()
 
     def __on_baud_rate_changed(self):
+        """
+        Handle the event when the selected baud rate changes.
+
+        Updates the serial connection with the new baud rate.
+        """
         self.__serial_conn.baud_rate = self.__baud_rate.get()
 
     def __on_btn_conn_clicked(self):
+        """
+        Handle the event when the connect/disconnect button is clicked.
+
+        Toggles the connection status and updates the button text accordingly.
+        """
         if self.__serial_conn.status:
             self.__serial_conn.close_conn()
         else:
@@ -146,18 +205,38 @@ class SerialMonitor(tk.Tk):
         )
 
     def __on_init_char_changed(self):
+        """
+        Handle the event when the selected initial character changes.
+
+        Updates the serial connection with the new initial character.
+        """
         self.__serial_conn.set_initial_character(self.__init_char.get())
 
     def __on_end_line_char_changed(self):
+        """
+        Handle the event when the selected end line character changes.
+
+        Updates the serial connection with the new end line character.
+        """
         self.__serial_conn.set_end_line_character(self.__end_line_char.get())
 
     def __on_send_message(self):
+        """
+        Handle the event when the send message button is clicked.
+
+        Sends the message entered in the message entry to the serial connection.
+        """
         msg = self.msg_entry.get()
         if not msg:
             return
         self.__serial_conn.send_msg(msg)
 
     def __on_status_changed(self, _):
+        """
+        Handle the event when the status of the serial connection changes.
+
+        Updates the UI components to reflect the new connection status.
+        """
         status = self.__serial_conn.status
         self.btn_conn.configure(text="Disconnect" if status else "Connect")
         self.port_cb.state(["disabled" if status else "!disabled"])
@@ -168,6 +247,11 @@ class SerialMonitor(tk.Tk):
         self.btn_send.state(["!disabled" if status else "disabled"])
 
     def __on_error_occurred(self, **kwargs):
+        """
+        Handle the event when an error occurs in the serial connection.
+
+        Displays an error message dialog with the exception details.
+        """
         if "exp" not in kwargs:
             return
         showerror("Error", kwargs["exp"])

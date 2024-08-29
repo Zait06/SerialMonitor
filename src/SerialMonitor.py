@@ -110,6 +110,7 @@ class SerialMonitor(tk.Tk):
         tk.Label(frame, text="Message:").pack(side="left")
         self.msg_entry = ttk.Entry(frame)
         self.msg_entry.pack(side="left")
+        self.msg_entry.bind("<Return>", lambda _: self.__on_send_message())
         self.msg_entry.state(["disabled"])
 
         tk.Label(frame, text="End line character:").pack(side="left")
@@ -167,11 +168,11 @@ class SerialMonitor(tk.Tk):
         """
         Handle the window closing event.
 
-        Stops the data receiving thread, closes the serial connection, and destroys the window.
+        Closes the serial connection, stops the data receiving thread, and destroys the window.
         """
+        self.__serial_conn.close_conn()
         self.stop_event.set()
         self.receive_thread.join()
-        self.__serial_conn.close_conn()
         self.destroy()
 
     def __on_port_changed(self):
@@ -230,6 +231,7 @@ class SerialMonitor(tk.Tk):
         if not msg:
             return
         self.__serial_conn.send_msg(msg)
+        self.msg_entry.delete(0, tk.END)
 
     def __on_status_changed(self, _):
         """
